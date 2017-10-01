@@ -6,7 +6,9 @@ Crystal Program for controlling your TP-Link Lightbulb
 
 For most use cases this should work:
 
-	```crystal build ./crybulb.cr --release```
+```
+	crystal build ./crybulb.cr --release
+```
 
 At the time of writing there is an issue I ran into with a certain version of LLVM where the --release flag wasn't working unless you also included --no-debug. Use the below command if you get an error compiling the release version:
 
@@ -35,14 +37,14 @@ Right now the -c command expects lowercase colors, and the values it accepts can
 
 Turn light bulb on and off:
 
-	```
-		./crybulb --on
-		./crybulb --off
-	```
+```
+	./crybulb --on
+	./crybulb --off
+```
 
 Set to blue or red:
 
-	```
-		./crybulb -c blue
-		./crybulb -c red
-	```
+```
+	./crybulb -c blue
+	./crybulb -c red
+```
