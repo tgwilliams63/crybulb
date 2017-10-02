@@ -1,3 +1,6 @@
+require "json"
+require "socket"
+
 module Crybulb
 
 	def self.buildJson(hue=nil, saturation=nil, brightness=nil, state=1, transition_period=0)
@@ -33,7 +36,7 @@ module Crybulb
 
 	def self.send(msg : String)
 		sock = Socket.udp(Socket::Family::INET)
-		sock.connect("192.168.1.3", 9999)
+		sock.connect("192.168.1.2", 9999)
 
 		encmsg = encrypt(msg)
 		

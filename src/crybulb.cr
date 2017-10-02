@@ -1,8 +1,7 @@
-require "json"
 require "option_parser"
-require "socket"
 
 require "./lib.cr"
+require "./cycle.cr"
 
 colors = {
 	"green": {"hue": 120, "saturation": 100, "brightness": 10},
@@ -38,6 +37,7 @@ OptionParser.parse! do |parser|
 	parser.on("-h H", "--hue=H", "Set Hue") { |h| hue = h.to_i  }
 	parser.on("-s S", "--saturation=S", "Set Saturation") { |s| saturation = s.to_i  }
 	parser.on("-t T", "--transition", "Set Transition Period") { |t| transition_period = t.to_i*1000}
+	parser.on("--cycle", "Enter Disco Mode") { Cycle.cycle() }
 	parser.on("--help", "Show this help") { puts parser; exit }
 end
 
