@@ -2,6 +2,8 @@ require "json"
 require "option_parser"
 require "socket"
 
+require "./lib.cr"
+
 colors = {
 	"green": {"hue": 120, "saturation": 100, "brightness": 10},
 	"blue": {"hue": 240, "saturation": 100, "brightness": 10},
@@ -21,78 +23,6 @@ saturation : Int32|Nil = nil
 brightness : Int32|Nil = nil
 color : String = ""
 
-def buildJson(hue=nil, saturation=nil, brightness=nil, state=1, transition_period=0)
-
-	base = JSON.build do |json|
-		json.object do
-			json.field "smartlife.iot.smartbulb.lightingservice" do 
-				json.object do
-					json.field "transition_light_state" do
-						json.object do
-							json.field "ignore_default", 1
-							json.field "on_off", state
-							json.field "transition_period", transition_period
-							if hue
-								json.field "hue", hue
-							end
-							if saturation
-								json.field "saturation", saturation
-							end
-							if brightness
-								json.field "brightness", brightness
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	return base
-
-end 
-
-
-def send(msg : String)
-	sock = Socket.udp(Socket::Family::INET)
-	sock.connect("192.168.1.3", 9999)
-
-	encmsg = encrypt(msg)
-	
-	sock.send(encmsg)
-
-	response = Bytes.new(1500)
-	sock.read(response)
-	# puts String.new(decrypt(response))
-end
-
-def encrypt(msg : String)
-	data = IO::Memory.new(msg)
-
-	mbytes = data.buffer.to_slice(data.bytesize)
-	cbytes = Slice(UInt8).new(mbytes.bytesize)
-	key = UInt8.new(171)
-
-	mbytes.each_with_index do |value,index|
-		ph = value
-		cbytes[index] = ph ^ key
-		key = cbytes[index]
-	end
-	return cbytes
-end
-
-def decrypt(msg : Slice(UInt8))
-	dbytes = Slice(UInt8).new(msg.bytesize)
-	key = UInt8.new(171)
-
-	msg.each_with_index do |value,index|
-		ph = value
-		dbytes[index] = ph ^ key
-		key = ph
-	end
-	return dbytes
-end
-
 OptionParser.parse! do |parser|
 	parser.banner = "Usage: crybulb [arguments]"
 	parser.on("--off", "Turn Off") { state=0 }
@@ -108,13 +38,13 @@ OptionParser.parse! do |parser|
 	parser.on("-h H", "--hue=H", "Set Hue") { |h| hue = h.to_i  }
 	parser.on("-s S", "--saturation=S", "Set Saturation") { |s| saturation = s.to_i  }
 	parser.on("-t T", "--transition", "Set Transition Period") { |t| transition_period = t.to_i*1000}
-	parser.on("--help", "Show this help") { puts parser }
+	parser.on("--help", "Show this help") { puts parser; exit }
 end
 
 # message = %({"smartlife.iot.smartbulb.lightingservice":{"transition_light_state":{"ignore_default":1,"on_off":0,"transition_period":2}}})
 # message = %({"system": {"get_sysinfo": {}}})
 
-message = buildJson(hue, saturation, brightness, state, transition_period)
+message = Crybulb.buildJson(hue, saturation, brightness, state, transition_period)
 # puts message
 
-send(message)
+Crybulb.send(message)

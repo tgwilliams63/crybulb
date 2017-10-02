@@ -1,0 +1,13 @@
+name: Crybulb
+version: 0.1.0
+
+authors:
+  -  Travis Williams
+
+targets:
+  Crybulb:
+    main: src/crybulb.cr
+
+crystal: 0.23.1
+
+license: MIT
