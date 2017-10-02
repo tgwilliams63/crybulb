@@ -26,6 +26,7 @@ At the time of writing there is an issue I ran into with a certain version of LL
 	-h H, --hue=H 			"Set Hue"
 	-s S, --saturation=S 	"Set Saturation"
 	-t T, --transition 		"Set Transition Period"
+	--cycle					"Enter Disco Mode"
 	--help 					"Show this help"
 ```
 
