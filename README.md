@@ -12,7 +12,9 @@ For most use cases this should work:
 
 At the time of writing there is an issue I ran into with a certain version of LLVM where the --release flag wasn't working unless you also included --no-debug. Use the below command if you get an error compiling the release version:
 
-	```crystal build ./crybulb.cr --release --no-debug```
+```
+	crystal build ./crybulb.cr --release --no-debug
+```
 
 # Usage
 
