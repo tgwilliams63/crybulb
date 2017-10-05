@@ -1,10 +1,58 @@
 require "json"
 require "socket"
 
+require "./colors"
+
+CList = Colors.clist
+
 module Crybulb
 
-	def self.buildJson(hue=nil, saturation=nil, brightness=nil, state=1, transition_period=0)
+	def self.getHex(color)
+		if CList.has_key?(color.downcase)
+	    hex = CList[color.downcase]
+	    hex = hex.to_s
+	    return hex
+	  else
+	  	message = %({"system": {"get_sysinfo": {}}})
+	  	originfo = Crybulb.send(message)
+	  	joinfo = JSON.parse(originfo.strip)
+	  	ohue = joinfo["system"]["get_sysinfo"]["light_state"]["hue"].as_i?
+	  	osat = joinfo["system"]["get_sysinfo"]["light_state"]["saturation"].as_i?
+	  	obri = joinfo["system"]["get_sysinfo"]["light_state"]["brightness"].as_i?
 
+	  	hsb = getHSB(CList["red"])
+	  	message = Crybulb.buildJson(hsb["h"], hsb["s"], hsb["b"], 1, 0)
+	  	Crybulb.send(message)
+	  	sleep 0.2
+
+	  	hsb = getHSB(CList["orange"])
+	  	message = Crybulb.buildJson(hsb["h"], hsb["s"], hsb["b"], 1, 0)
+	  	Crybulb.send(message)
+	  	sleep 0.2
+
+	  	hsb = getHSB(CList["red"])
+	  	message = Crybulb.buildJson(hsb["h"], hsb["s"], hsb["b"], 1, 0)
+	  	Crybulb.send(message)
+	  	sleep 0.2
+
+	  	message = Crybulb.buildJson(ohue, osat, obri, 1, 0)
+	  	Crybulb.send(message)
+	  	sleep 0.2
+
+	  	exit
+	  end
+	end
+
+	def self.getHSB(hex)
+	  url = "http://rgb.to/save/json/color/#{hex}"
+	  HTTP::Client.get(url) do |response|
+	    resjson = JSON.parse(response.body_io.gets_to_end)
+	    resjson = resjson["hsb"]
+	    return {"h": resjson["h"].as_i?, "s": resjson["s"].as_i?, "b": resjson["b"].as_i?}
+	  end
+	end
+
+	def self.buildJson(hue=nil, saturation=nil, brightness=nil, state=1, transition_period=0)
 		base = JSON.build do |json|
 			json.object do
 				json.field "smartlife.iot.smartbulb.lightingservice" do 
@@ -29,9 +77,7 @@ module Crybulb
 				end
 			end
 		end
-
 		return base
-
 	end 
 
 	def self.send(msg : String)
@@ -42,9 +88,22 @@ module Crybulb
 		
 		sock.send(encmsg)
 
+		saferes = Slice(UInt8).empty
 		response = Bytes.new(1500)
 		sock.read(response)
-		# puts String.new(decrypt(response))
+
+		response.each_with_index do |value, key|
+			# puts typeof(value)
+			# puts "Value: #{value}, Index: #{key}"
+			if value==0
+				saferes = response[0,key]
+				break
+			end
+		end
+
+		# puts saferes
+
+		return String.new(decrypt(saferes))
 	end
 
 	def self.encrypt(msg : String)

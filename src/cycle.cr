@@ -1,6 +1,6 @@
 require "socket"
 
-require "./lib.cr"
+require "./lib"
 
 module Cycle
 	def self.cycle
